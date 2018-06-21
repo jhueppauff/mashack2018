@@ -1,0 +1,175 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "hostingPlanName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "F1",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "S1"
+      ],
+      "metadata": {
+        "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    },
+    "skuCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "metadata": {
+        "description": "Describes plan's instance count"
+      }
+    },
+    "databaseName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the SQL database to be created."
+      }
+    },
+    "databaseLoginName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the SQL login to be created for connecting to the new database."
+      }
+    },
+    "databaseLoginPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password of the SQL login to be created for connecting to the new database."
+      }
+    },
+    "collation": {
+      "type": "string",
+      "metadata": {
+        "description": "Collation of the new SQL database."
+      },
+      "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+    },
+    "databaseSizeMB": {
+      "type": "int",
+      "metadata": {
+        "description": "Size in MB of the SQL database to be created."
+      }
+    },
+    "dbSkuName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the requested database SKU."
+      },
+      "defaultValue": "MSSQL2017"
+    },
+    "skuTier": {
+      "type": "string",
+      "metadata": {
+        "description": "Tier of the requested database SKU."
+      },
+      "defaultValue": "Standalone"
+    },
+    "skuFamily": {
+      "type": "string",
+      "metadata": {
+        "description": "Family of the requested database SKU."
+      },
+      "defaultValue": "SQLServer"
+    }
+
+  },
+  "variables": {
+    "webSiteName": "[concat('webSite', uniqueString(resourceGroup().id))]",
+    "sqlserverName": "sqlhost.local.cloudapp.azurestack.external"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[parameters('hostingPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "HostingPlan"
+      },
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "capacity": "[parameters('skuCapacity')]"
+      },
+      "properties": {
+        "name": "[parameters('hostingPlanName')]"
+      }
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('webSiteName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "Resource",
+        "displayName": "Website"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
+      ],
+      "properties": {
+        "name": "[variables('webSiteName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "connectionstrings",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites/', variables('webSiteName'))]"
+          ],
+          "properties": {
+            "MyDbConnection": {
+              "value": "[concat('Data Source=', variables('sqlserverName'), ',1433;Initial Catalog=', parameters('databaseName'), ';User Id=', parameters('databaseLoginName'), ';Password=', parameters('databaseLoginPassword'), ';')]",
+              "type": "SQLServer"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "2017-08-28",
+      "type": "Microsoft.SQLAdapter/logins",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('databaseLoginName')]",
+      "tags": {
+        "displayName": "SQLLogin"
+      },
+      "properties": {
+        "userName": "[parameters('databaseLoginName')]",
+        "password": "[parameters('databaseLoginPassword')]",
+        "skuName": "[parameters('dbSkuName')]"
+      }
+    },
+    {
+      "apiVersion": "2017-08-28",
+      "type": "Microsoft.SQLAdapter/databases",
+      "dependsOn": [
+        "[concat('Microsoft.SQLAdapter/logins/', parameters('databaseLoginName'))]"
+      ],
+      "tags": {
+        "displayName": "SQLDB"
+      },
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('databaseName')]",
+      "properties": {
+        "databaseName": "[parameters('databaseName')]",
+        "loginUserName": "[parameters('databaseLoginName')]",
+        "collation": "[parameters('collation')]",
+        "maxSizeMb": "[parameters('databaseSizeMB')]"
+      },
+      "sku": {
+        "name": "[parameters('dbSkuName')]",
+        "tier": "[parameters('skuTier')]",
+        "family": "[parameters('skuFamily')]"
+      }
+    }
+  ]
+}

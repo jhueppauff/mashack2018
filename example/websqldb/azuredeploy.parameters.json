@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "hostingPlanName": {
+        "value": null
+      },
+      "databaseName": {
+        "value": null
+      },
+      "databaseLoginName": {
+        "value": null
+      },
+      "databaseSizeMB": {
+        "value": null
+      },
+      "dbSkuName": {
+        "value": "MSSQL2017"
+      },
+      "skuTier": {
+        "value": "Standalone"
+      },
+      "skuFamily": {
+        "value": "SQLServer"
+      },
+      "databaseLoginPassword": {
+        "value": null
+      },
+      "skuName": {
+        "value": null
+      }
+    }
+  }
