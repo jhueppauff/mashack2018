@@ -40,5 +40,10 @@ You have existing ARM templates and want to validate them against your current A
 ```ps
 Import-Module .\TemplateValidator\AzureRM.TemplateValidator.psm1
 Import-Module .\CloudCapabilities\AzureRM.CloudCapabilities.psm1
+Get-AzureRMCloudCapability -Location local -Verbose
 Test-AzureRMTemplate -TemplatePath C:\Users\Administrator\source\repos\TestDeployment\DbDeployment\azuredeploy1.json -CapabilitiesPath .\AzureCloudCapabilities.Json -Verbose
 ```
+
+Further Information
+
+- <https://docs.microsoft.com/en-us/azure/azure-stack/user/azure-stack-considerations>
