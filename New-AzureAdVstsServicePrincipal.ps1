@@ -17,7 +17,8 @@ Write-Output "Creating AAD Application with Identifier - $ApplicationUri"
 $application = New-AzureRmADApplication -DisplayName $ApplicationName `
     -IdentifierUris $ApplicationUri `
     -HomePage $ApplicationUri `
-    -Password $Password
+    -Password $Password `
+    -AvailableToOtherTenants $false
 
 #Create a ServicePrincipal for the Application
 Write-Output "Creating Service Pricnipal"
