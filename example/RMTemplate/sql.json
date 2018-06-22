@@ -1,0 +1,66 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "userName": {
+            "type": "String"
+        },
+        "password": {
+            "type": "SecureString"
+        },
+        "collation": {
+            "type": "String"
+        },
+        "databaseName": {
+            "type": "String"
+        },
+        "maxSizeMB": {
+            "type": "Int"
+        },
+        "location": {
+            "type": "String"
+        },
+        "skuName": {
+            "type": "String"
+        },
+        "skuTier": {
+            "type": "String"
+        },
+        "skuFamily": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.SQLAdapter/logins",
+            "name": "[parameters('userName')]",
+            "apiVersion": "2017-08-28",
+            "location": "[parameters('location')]",
+            "properties": {
+                "userName": "[parameters('userName')]",
+                "password": "[parameters('password')]",
+                "skuName": "[parameters('skuName')]"
+            }
+        },
+        {
+            "type": "Microsoft.SQLAdapter/databases",
+            "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]",
+                "family": "[parameters('skuFamily')]"
+            },
+            "name": "[parameters('databaseName')]",
+            "apiVersion": "2017-08-28",
+            "location": "[parameters('location')]",
+            "properties": {
+                "databaseName": "[parameters('databaseName')]",
+                "loginUserName": "[parameters('userName')]",
+                "collation": "[parameters('collation')]",
+                "maxSizeMb": "[parameters('maxSizeMB')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.SQLAdapter/logins/', parameters('userName'))]"
+            ]
+        }
+    ]
+}
